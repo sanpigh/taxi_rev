@@ -30,7 +30,8 @@ def haversine_vectorized(df,
     c = 2 * np.arcsin(np.sqrt(a))
     return 6371 * c
 
-
+def compute_rmse(y_pred, y_true):
+    return np.sqrt(((y_pred - y_true)**2).mean())
 
 # create a TimeFeaturesEncoder
 class TimeFeaturesEncoder(BaseEstimator, TransformerMixin):
