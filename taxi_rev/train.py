@@ -1,4 +1,4 @@
-import multiprocessing
+import multiprocess
 from psutil import virtual_memory
 
 from taxi_rev.encoders import compute_rmse
@@ -21,7 +21,7 @@ from mlflow.tracking import MlflowClient
 class Trainer:
     MLFLOW_URI = "https://mlflow.lewagon.co/"
     ESTIMATOR = "Linear"
-    EXPERIMENT_NAME = "TaxifareModel"
+    EXPERIMENT_NAME = 'experiment_name_default'
 
     # models = [
     #     "linear_regression",
@@ -43,35 +43,75 @@ class Trainer:
         :param kwargs:
         """
         self.pipeline = None
-        self.kwargs = kwargs
-        self.local = kwargs.get("local", False)    # if True training is done locally
-        self.mlflow = kwargs.get("mlflow", False)  # if True log info to mlflow
-        self.experiment_name = kwargs.get("experiment_name", self.EXPERIMENT_NAME)  # cf doc above
+        self.kwargs   = kwargs
+        # self.local    = kwargs.get('local', False)    # if True training is done locally
+        self.mlflow   = kwargs.get('mlflow', False)  # if True log info to mlflow
+        self.experiment_name = kwargs.get('experiment_name', self.EXPERIMENT_NAME)  
+                                       # if not specified, exp name = TaxifareModel
         # self.model_params = None  # 
-        self.X_train = X
-        self.y_train = y
+        self.X = X
+        self.y = y
         del X, y
-        self.split = self.kwargs.get("split", True)  # cf doc above
+        self.split     = self.kwargs.get('split', True)  # cf doc above
         if self.split:
-            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train,
-                                                                                  test_size=0.15)
+            self.test_size = self.kwargs.get('test_size', 0.3)
+            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, self.y, 
+                                                                                  test_size=self.test_size)
         self.nrows = self.X_train.shape[0]  # nb of rows to train on
         self.log_kwargs_params()
         self.log_machine_specs()
 
 
-    def log_kwargs_params(self):
-        if self.mlflow:
-            for key, value in self.kwargs.items():
-                self.mlflow_log_param(key, value)
+    
 
-    def log_machine_specs(self):
-        cpus = multiprocessing.cpu_count()
-        mem = virtual_memory()
-        ram = int(mem.total / 1_000_000_000)
-        self.mlflow_log_param("ram", ram)
-        self.mlflow_log_param("cpus", cpus)
 
+
+
+### TRAINING AND EVALUATION
+    def train(self):
+        # # store the data in a DataFrame
+
+        # # set X and y
+        # y = df.pop("fare_amount")
+
+        # # hold out
+        # X_train, X_val, y_train, y_val = train_test_split(df, y, test_size=0.3)
+
+        model = 'linear_regression'
+
+        # build pipeline
+        pipeline = set_pipeline(model)
+
+        # train the pipeline
+        pipeline.fit(self.X_train, self.y_train)
+
+        # evaluate the pipeline
+        rmse_train = self.evaluate(self.X_train, self.y_train, pipeline)
+
+        # self.mlflow_log_metric("train_time", int(time.time() - tic))
+        self.mlflow_log_metric("rmse_train", rmse_train)
+        if self.split:
+            rmse_val   = self.evaluate(self.X_val, self.y_val, pipeline)
+            # rmse_val = self.compute_rmse(self.X_val, self.y_val, show=True)
+            self.mlflow_log_metric("rmse_val", rmse_val)
+            # print(colored("rmse train: {} || rmse val: {}".format(rmse_train, rmse_val), "blue"))
+        # else:
+        #     print(colored("rmse train: {}".format(rmse_train), "blue"))
+
+
+        # self.mlflow_create_run()
+        # self.mlflow_log_metric("rmse_train", rmse_train)
+        # self.mlflow_log_metric("rmse_val", rmse_val)
+        # self.mlflow_log_param("model", model)
+
+    # implement evaluate() function
+    def evaluate(self, X_test, y_test, pipeline):
+        """returns the value of the RMSE"""
+        y_pred = pipeline.predict(X_test)
+        rmse = compute_rmse(y_pred, y_test)
+        return rmse
+
+### MLFlow methods
     @memoized_property
     def mlflow_client(self):
         # Generates the MlflowClient object that will be used below, memoized allows to
@@ -84,56 +124,58 @@ class Trainer:
         try:
             return self.mlflow_client.create_experiment(self.experiment_name)
         except BaseException:
-            return self.mlflow_client.get_experiment_by_name(
-                self.experiment_name
-            ).experiment_id
+            return self.mlflow_client.get_experiment_by_name(self.experiment_name).experiment_id
 
-    def mlflow_create_run(self):
-        # creates the attribute mlflow_run
-        self.mlflow_run = self.mlflow_client.create_run(self.mlflow_experiment_id)
+    @memoized_property
+    def mlflow_run(self):
+        return self.mlflow_client.create_run(self.mlflow_experiment_id)
 
     def mlflow_log_param(self, key, value):
-        self.mlflow_client.log_param(self.mlflow_run.info.run_id, key, value)
+        if self.mlflow:
+            self.mlflow_client.log_param(self.mlflow_run.info.run_id, key, value)
 
     def mlflow_log_metric(self, key, value):
-        self.mlflow_client.log_metric(self.mlflow_run.info.run_id, key, value)
+        if self.mlflow:
+            self.mlflow_client.log_metric(self.mlflow_run.info.run_id, key, value)
 
-    # implement evaluate() function
-    def evaluate(self, X_test, y_test, pipeline):
-        """returns the value of the RMSE"""
-        y_pred = pipeline.predict(X_test)
-        rmse = compute_rmse(y_pred, y_test)
-        return rmse
+    def log_estimator_params(self):
+        reg = self.get_estimator()
+        self.mlflow_log_param('estimator_name', reg.__class__.__name__)
+        params = reg.get_params()
+        for k, v in params.items():
+            self.mlflow_log_param(k, v)
 
-    def train(self):
-        # store the data in a DataFrame
-        df = clean_data(get_data())
+    def log_kwargs_params(self):
+        if self.mlflow:
+            for k, v in self.kwargs.items():
+                self.mlflow_log_param(k, v)
 
-        # set X and y
-        y = df.pop("fare_amount")
-
-        # hold out
-        X_train, X_val, y_train, y_val = train_test_split(df, y, test_size=0.3)
-
-        for model in self.models:
-
-            # build pipeline
-            pipeline = set_pipeline(model)
-
-            # train the pipeline
-            pipeline.fit(X_train, y_train)
-
-            # evaluate the pipeline
-            rmse_train = self.evaluate(X_train, y_train, pipeline)
-            rmse_val = self.evaluate(X_val, y_val, pipeline)
-
-            self.mlflow_create_run()
-            self.mlflow_log_metric("rmse_train", rmse_train)
-            self.mlflow_log_metric("rmse_val", rmse_val)
-            self.mlflow_log_param("model", model)
+    def log_machine_specs(self):
+        cpus = multiprocess.cpu_count()
+        mem = virtual_memory()
+        ram = int(mem.total / 1_000_000_000)
+        self.mlflow_log_param("ram", ram)
+        self.mlflow_log_param("cpus", cpus)
 
 
-trainer = Trainer("[FR] [Bordeaux] [sanpigh] test_many_models v0")
+
+
+
+
+
+### Get Data
+df = clean_data(get_data())
+y = df['fare_amount']
+X = df.drop('fare_amount', axis=1)
+del df
+
+params = {
+    'experiment_name': '[FR] [Bordeaux] [sanpigh] test_many_models v0',
+    'mlflow'   : True,
+    'split'    : True,
+    'test_size': 0.3
+}
+trainer = Trainer(X, y, **params)
 trainer.train()
 
 

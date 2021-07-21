@@ -29,5 +29,5 @@ memoized-property
 termcolor
 
 # calculation
-multiprocessing
+multiprocess
 psutil
