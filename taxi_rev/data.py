@@ -1,22 +1,19 @@
-
 from taxi_rev.parameters import data_path
 
 import pandas as pd
 
 
-
 # implement get_data() function
 def get_data(nrows=1000):
-    '''returns a DataFrame with nrows from s3 bucket'''
+    """returns a DataFrame with nrows from s3 bucket"""
     # aws_path = "s3://wagon-public-datasets/taxi-fare-train.csv"
     df = pd.read_csv(data_path, nrows=nrows)
     return df
 
 
-
 def clean_data(df, test=False):
-    '''returns a DataFrame without outliers and missing values'''
-    df = df.dropna(how='any')
+    """returns a DataFrame without outliers and missing values"""
+    df = df.dropna(how="any")
     df = df[(df.dropoff_latitude != 0) | (df.dropoff_longitude != 0)]
     df = df[(df.pickup_latitude != 0) | (df.pickup_longitude != 0)]
     if "fare_amount" in list(df):
@@ -30,13 +27,10 @@ def clean_data(df, test=False):
     return df
 
 
-
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     df = get_data(100)
     print(df.head())
     print(len(df))
-    
+
     df = clean_data(df)
     print(len(df))
