@@ -1,3 +1,6 @@
+import multiprocessing
+from psutil import virtual_memory
+
 from taxi_rev.encoders import compute_rmse
 from taxi_rev.data import clean_data, get_data
 from taxi_rev.encoders import set_pipeline, set_preproc_pipe
@@ -17,14 +20,57 @@ from mlflow.tracking import MlflowClient
 
 class Trainer:
     MLFLOW_URI = "https://mlflow.lewagon.co/"
-    models = [
-        "linear_regression",
-        "decision_tree_regression",
-        "random_forest_regressor",
-    ]
+    ESTIMATOR = "Linear"
+    EXPERIMENT_NAME = "TaxifareModel"
 
-    def __init__(self, experiment_name):
-        self.experiment_name = experiment_name
+    # models = [
+    #     "linear_regression",
+    #     "decision_tree_regression",
+    #     "random_forest_regressor"
+    # ]
+
+    def __init__(self, X, y, **kwargs):
+        """
+        FYI:
+        __init__ is called every time you instatiate Trainer
+        Consider kwargs as a dict containig all possible parameters given to your constructor
+        Example:
+            TT = Trainer(nrows=1000, estimator="Linear")
+               ==> kwargs = {"nrows": 1000,
+                            "estimator": "Linear"}
+        :param X:
+        :param y:
+        :param kwargs:
+        """
+        self.pipeline = None
+        self.kwargs = kwargs
+        self.local = kwargs.get("local", False)    # if True training is done locally
+        self.mlflow = kwargs.get("mlflow", False)  # if True log info to mlflow
+        self.experiment_name = kwargs.get("experiment_name", self.EXPERIMENT_NAME)  # cf doc above
+        # self.model_params = None  # 
+        self.X_train = X
+        self.y_train = y
+        del X, y
+        self.split = self.kwargs.get("split", True)  # cf doc above
+        if self.split:
+            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train,
+                                                                                  test_size=0.15)
+        self.nrows = self.X_train.shape[0]  # nb of rows to train on
+        self.log_kwargs_params()
+        self.log_machine_specs()
+
+
+    def log_kwargs_params(self):
+        if self.mlflow:
+            for key, value in self.kwargs.items():
+                self.mlflow_log_param(key, value)
+
+    def log_machine_specs(self):
+        cpus = multiprocessing.cpu_count()
+        mem = virtual_memory()
+        ram = int(mem.total / 1_000_000_000)
+        self.mlflow_log_param("ram", ram)
+        self.mlflow_log_param("cpus", cpus)
 
     @memoized_property
     def mlflow_client(self):
@@ -69,10 +115,10 @@ class Trainer:
         # hold out
         X_train, X_val, y_train, y_val = train_test_split(df, y, test_size=0.3)
 
-        for model in models:
+        for model in self.models:
 
             # build pipeline
-            pipeline = set_pipeline("linear_regression")
+            pipeline = set_pipeline(model)
 
             # train the pipeline
             pipeline.fit(X_train, y_train)

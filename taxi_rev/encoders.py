@@ -143,7 +143,6 @@ def set_preproc_pipe():
         ],
         remainder="drop",
     )
-    print(type(preproc_pipe))
     return preproc_pipe
 
 
