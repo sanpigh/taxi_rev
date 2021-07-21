@@ -17,6 +17,11 @@ from mlflow.tracking import MlflowClient
 
 class Trainer:
     MLFLOW_URI = "https://mlflow.lewagon.co/"
+    models = [
+        "linear_regression",
+        "decision_tree_regression",
+        "random_forest_regressor",
+    ]
 
     def __init__(self, experiment_name):
         self.experiment_name = experiment_name
@@ -64,24 +69,22 @@ class Trainer:
         # hold out
         X_train, X_val, y_train, y_val = train_test_split(df, y, test_size=0.3)
 
-        for model in ['linear_regression']:
+        for model in models:
 
             # build pipeline
-            pipeline = set_pipeline('linear_regression')
+            pipeline = set_pipeline("linear_regression")
 
             # train the pipeline
             pipeline.fit(X_train, y_train)
 
             # evaluate the pipeline
             rmse_train = self.evaluate(X_train, y_train, pipeline)
-            rmse_val   = self.evaluate(X_val, y_val, pipeline)
-
-            print(rmse_train, rmse_val)
+            rmse_val = self.evaluate(X_val, y_val, pipeline)
 
             self.mlflow_create_run()
-            self.mlflow_log_metric('rmse_train', rmse_val)
-            # self.mlflow_log_metric("rmse_train", rmse_val)
-            self.mlflow_log_param('model', model)
+            self.mlflow_log_metric("rmse_train", rmse_train)
+            self.mlflow_log_metric("rmse_val", rmse_val)
+            self.mlflow_log_param("model", model)
 
 
 trainer = Trainer("[FR] [Bordeaux] [sanpigh] test_many_models v0")

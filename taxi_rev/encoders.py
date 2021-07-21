@@ -1,12 +1,15 @@
 import pandas as pd
 import numpy as np
+
 from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import StandardScaler
-
 
 
 # df es el dataframe sobre el que voy a trabajar. El resto de las variables son los nombres de las columnas sobre las que voy a operar
@@ -146,8 +149,22 @@ def set_preproc_pipe():
 
 def set_pipeline(model):
     preproc_pipe = set_preproc_pipe()
-    if model == 'linear_regression':
+    if model == "linear_regression":
         pipe = Pipeline(
-            [('preproc', preproc_pipe), ('linear_regression', LinearRegression())]
+            [("preproc", preproc_pipe), ("linear_regression", LinearRegression())]
+        )
+    if model == "decision_tree_regression":
+        pipe = Pipeline(
+            [
+                ("preproc", preproc_pipe),
+                ("decision_tree_regression", DecisionTreeRegressor()),
+            ]
+        )
+    if model == "random_forest_regressor":
+        pipe = Pipeline(
+            [
+                ("preproc", preproc_pipe),
+                ("random_forest_regressor", RandomForestRegressor()),
+            ]
         )
     return pipe
