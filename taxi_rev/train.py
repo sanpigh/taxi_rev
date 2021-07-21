@@ -80,18 +80,18 @@ class Trainer:
         model = 'linear_regression'
 
         # build pipeline
-        pipeline = set_pipeline(model)
+        self.pipeline = set_pipeline(model)
 
         # train the pipeline
-        pipeline.fit(self.X_train, self.y_train)
+        self.pipeline.fit(self.X_train, self.y_train)
 
         # evaluate the pipeline
-        rmse_train = self.evaluate(self.X_train, self.y_train, pipeline)
+        rmse_train = self.evaluate(self.X_train, self.y_train)
 
         # self.mlflow_log_metric("train_time", int(time.time() - tic))
         self.mlflow_log_metric("rmse_train", rmse_train)
         if self.split:
-            rmse_val   = self.evaluate(self.X_val, self.y_val, pipeline)
+            rmse_val   = self.evaluate(self.X_val, self.y_val)
             # rmse_val = self.compute_rmse(self.X_val, self.y_val, show=True)
             self.mlflow_log_metric("rmse_val", rmse_val)
             # print(colored("rmse train: {} || rmse val: {}".format(rmse_train, rmse_val), "blue"))
@@ -99,15 +99,11 @@ class Trainer:
         #     print(colored("rmse train: {}".format(rmse_train), "blue"))
 
 
-        # self.mlflow_create_run()
-        # self.mlflow_log_metric("rmse_train", rmse_train)
-        # self.mlflow_log_metric("rmse_val", rmse_val)
-        # self.mlflow_log_param("model", model)
 
     # implement evaluate() function
-    def evaluate(self, X_test, y_test, pipeline):
+    def evaluate(self, X_test, y_test):
         """returns the value of the RMSE"""
-        y_pred = pipeline.predict(X_test)
+        y_pred = self.pipeline.predict(X_test)
         rmse = compute_rmse(y_pred, y_test)
         return rmse
 
