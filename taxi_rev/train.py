@@ -1,5 +1,6 @@
 import multiprocess
 from psutil import virtual_memory
+import xgboost
 
 from taxi_rev.encoders import compute_rmse
 from taxi_rev.data import clean_data, get_data
@@ -20,8 +21,8 @@ from mlflow.tracking import MlflowClient
 
 
 class Trainer(GetPipeline):
-    MLFLOW_URI = "https://mlflow.lewagon.co/"
-    ESTIMATOR = "Linear"
+    MLFLOW_URI = 'https://mlflow.lewagon.co/'
+    DEFAULT_ESTIMATOR_NAME = 'Linear'
     EXPERIMENT_NAME = 'experiment_name_default'
 
     # models = [
@@ -61,7 +62,8 @@ class Trainer(GetPipeline):
         self.nrows = self.X_train.shape[0]  # nb of rows to train on
         self.log_kwargs_params()
         self.log_machine_specs()
-        self.estimator = kwargs.get('estimator', 'linear_regression')
+        self.estimator_name   = kwargs.get('estimator_name', self.DEFAULT_ESTIMATOR_NAME)
+        self.estimator_params = kwargs.get('estimator_params')
 
 ### TRAINING AND EVALUATION
     def train(self):
@@ -127,9 +129,15 @@ class Trainer(GetPipeline):
             self.mlflow_log_param(k, v)
 
     def log_kwargs_params(self):
+        print('***************************')
         if self.mlflow:
-            for k, v in self.kwargs.items():
-                self.mlflow_log_param(k, v)
+            for key, value in self.kwargs.items():
+                if key == 'estimator_params':
+                    for k, v in value.items():
+                        self.mlflow_log_param(f'estimator param: {k}', v)
+                else:
+                    self.mlflow_log_param(key, value)
+                print(key, value)
 
     def log_machine_specs(self):
         cpus = multiprocess.cpu_count()
@@ -155,8 +163,31 @@ params = {
     'mlflow'   : True,
     'split'    : True,
     'test_size': 0.3,
-    'estimator': 'linear_regression'
+    'estimator_name': 'RandomForest'
 }
+
+extra_params = {}
+if params['estimator_name'] == 'Ridge':
+    extra_params = {
+        'alpha': 0.5
+    }
+
+if params['estimator_name'] == 'RandomForest':
+    extra_params = {  # 'n_estimators': [int(x) for x in np.linspace(start = 50, stop = 200, num = 10)],
+                'max_features': 'auto' #['auto', 'sqrt']
+                # 'max_depth' : [int(x) for x in np.linspace(10, 110, num = 11)]
+                }
+    
+if params['estimator_name'] == 'Xgboost':
+    extra_params = {
+    'max_depth': 10, #[10, 12],  #range(10, 20, 2),
+    'n_estimators': 60, #[60, 100], #range(60, 220, 40),
+    'learning_rate': [0.1, 0.01, 0.05]
+    }
+
+params['estimator_params'] = extra_params
+print(params)
+
 trainer = Trainer(X, y, **params)
 trainer.train()
 

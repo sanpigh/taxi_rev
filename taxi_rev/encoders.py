@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Lasso, Ridge
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from xgboost import XGBRegressor
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -152,26 +153,41 @@ class GetPipeline():
     
     def set_preproc_pipe(self):
         self.preproc_pipe = set_preproc_pipe()
-    
+        
+    def get_estimator(self):
+        if self.estimator_name == 'Lasso':
+            estimator = Lasso()
+        elif self.estimator_name == 'Ridge':
+            estimator = Ridge()
+        elif self.estimator_name == 'Linear':
+            estimator = LinearRegression()
+        elif self.estimator_name == 'GBM':
+            estimator = GradientBoostingRegressor()
+        elif self.estimator_name == 'DecisionTree':
+            estimator = DecisionTreeRegressor()
+        elif self.estimator_name == 'RandomForest':
+            estimator = RandomForestRegressor()
+            # self.estimator_params = {  # 'n_estimators': [int(x) for x in np.linspace(start = 50, stop = 200, num = 10)],
+            #     'max_features': ['auto', 'sqrt']}
+            # 'max_depth' : [int(x) for x in np.linspace(10, 110, num = 11)]}
+        elif self.estimator_name == 'Xgboost':
+            estimator = XGBRegressor(objective='reg:squarederror', n_jobs=-1, max_depth=10, learning_rate=0.05,
+                                 gamma=3)
+            # self.estimator_params = {'max_depth': range(10, 20, 2),
+            #                          'n_estimators': range(60, 220, 40),
+            #                          'learning_rate': [0.1, 0.01, 0.05]
+            #                         }
+        
+            
+        # estimator_params = self.kwargs.get('estimator_params', self.estimator_params)
+        self.mlflow_log_param('estimator', self.estimator_params)
+        estimator.set_params(**self.estimator_params)
+        self.estimator = estimator
+        print('estimator object: \n', estimator)
+
     def set_pipeline(self):
         self.set_preproc_pipe()
-        
-        if self.estimator == "linear_regression":
-            self.pipeline = Pipeline(
-                [("preproc", self.preproc_pipe), ("linear_regression", LinearRegression())]
-            )
-        if self.estimator == "decision_tree_regression":
-            self.pipeline = Pipeline(
-                [
-                    ("preproc", self.preproc_pipe),
-                    ("decision_tree_regression", DecisionTreeRegressor()),
-                ]
-            )
-        if self.estimator == "random_forest_regressor":
-            self.pipeline = Pipeline(
-                [
-                    ("preproc", self.preproc_pipe),
-                    ("random_forest_regressor", RandomForestRegressor()),
-                ]
-            )
-
+        self.get_estimator()
+        self.pipeline = Pipeline(
+            [('preproc', self.preproc_pipe), ('estimator', self.estimator)]
+        )
