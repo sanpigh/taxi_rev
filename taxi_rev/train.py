@@ -60,16 +60,19 @@ class Trainer(GetPipeline):
             self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, self.y, 
                                                                                   test_size=self.test_size)
         self.nrows = self.X_train.shape[0]  # nb of rows to train on
-        self.log_kwargs_params()
         self.log_machine_specs()
         self.estimator_name   = kwargs.get('estimator_name', self.DEFAULT_ESTIMATOR_NAME)
         self.estimator_params = kwargs.get('estimator_params')
-        print(self.estimator_params)
 
 ### TRAINING AND EVALUATION
     def train(self):
         # build pipeline
         self.set_pipeline()
+        self.log_kwargs_params()
+
+     
+        # mlflow log estimator params
+        # self.log_estimator_params() # too verbose
 
         # train the pipeline
         self.pipeline.fit(self.X_train, self.y_train)
@@ -122,25 +125,17 @@ class Trainer(GetPipeline):
         if self.mlflow:
             self.mlflow_client.log_metric(self.mlflow_run.info.run_id, key, value)
 
-    def log_estimator_params(self):
-        reg = self.get_estimator()
+    def log_estimator_params(self): # too verbose, use log_kwars_params instead
+        reg = self.estimator
         self.mlflow_log_param('estimator_name', reg.__class__.__name__)
         params = reg.get_params()
         for k, v in params.items():
             self.mlflow_log_param(k, v)
 
     def log_kwargs_params(self):
-        print('*************************** log_kwars_params')
         if self.mlflow:
             for key, value in self.kwargs.items():
-                if key == 'estimator_params':
-                    for k, v in value.items():
-                        print(f'       {k}, {v}')
-                        self.mlflow_log_param(f'estimator param {k}', v)
-                else:
-                    self.mlflow_log_param(key, value)
-                print(key, value)
-        print('***************************')
+                self.mlflow_log_param(key, value)
 
     def log_machine_specs(self):
         cpus = multiprocess.cpu_count()
@@ -163,7 +158,7 @@ del df
 
 params = {
     'experiment_name': '[FR] [Bordeaux] [sanpigh] test_many_models v0',
-    'mlflow'   : True,
+#    'mlflow'   : True,
     'split'    : True,
     'test_size': 0.3,
     'estimator_name': 'Xgboost'
@@ -189,7 +184,6 @@ if params['estimator_name'] == 'Xgboost':
     }
 
 params['estimator_params'] = extra_params
-print(params)
 
 trainer = Trainer(X, y, **params)
 trainer.train()

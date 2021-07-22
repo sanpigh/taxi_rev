@@ -148,8 +148,6 @@ def set_preproc_pipe():
 
 
 class GetPipeline():
-    # def __init__(self, model):
-    #     self.model = model
     
     def set_preproc_pipe(self):
         self.preproc_pipe = set_preproc_pipe()
@@ -173,17 +171,8 @@ class GetPipeline():
         elif self.estimator_name == 'Xgboost':
             estimator = XGBRegressor(objective='reg:squarederror', n_jobs=-1, max_depth=10, learning_rate=0.05,
                                  gamma=3)
-            # self.estimator_params = {'max_depth': range(10, 20, 2),
-            #                          'n_estimators': range(60, 220, 40),
-            #                          'learning_rate': [0.1, 0.01, 0.05]
-            #                         }
-        
-            
-        # estimator_params = self.kwargs.get('estimator_params', self.estimator_params)
-        self.mlflow_log_param('estimator', self.estimator_params)
         estimator.set_params(**self.estimator_params)
         self.estimator = estimator
-        print('estimator object: \n', estimator)
 
     def set_pipeline(self):
         self.set_preproc_pipe()
