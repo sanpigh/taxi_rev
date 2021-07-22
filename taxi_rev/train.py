@@ -3,7 +3,8 @@ from psutil import virtual_memory
 
 from taxi_rev.encoders import compute_rmse
 from taxi_rev.data import clean_data, get_data
-from taxi_rev.encoders import set_pipeline, set_preproc_pipe
+from taxi_rev.encoders import GetPipeline
+
 from sklearn.model_selection import train_test_split
 
 from memoized_property import memoized_property
@@ -18,7 +19,7 @@ from mlflow.tracking import MlflowClient
 #   the run data, including metrics, parameters, and tags.
 
 
-class Trainer:
+class Trainer(GetPipeline):
     MLFLOW_URI = "https://mlflow.lewagon.co/"
     ESTIMATOR = "Linear"
     EXPERIMENT_NAME = 'experiment_name_default'
@@ -52,7 +53,7 @@ class Trainer:
         self.X = X
         self.y = y
         del X, y
-        self.split     = self.kwargs.get('split', True)  # cf doc above
+        self.split = self.kwargs.get('split', True)  # cf doc above
         if self.split:
             self.test_size = self.kwargs.get('test_size', 0.3)
             self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, self.y, 
@@ -60,27 +61,12 @@ class Trainer:
         self.nrows = self.X_train.shape[0]  # nb of rows to train on
         self.log_kwargs_params()
         self.log_machine_specs()
-
-
-    
-
-
-
+        self.estimator = kwargs.get('estimator', 'linear_regression')
 
 ### TRAINING AND EVALUATION
     def train(self):
-        # # store the data in a DataFrame
-
-        # # set X and y
-        # y = df.pop("fare_amount")
-
-        # # hold out
-        # X_train, X_val, y_train, y_val = train_test_split(df, y, test_size=0.3)
-
-        model = 'linear_regression'
-
         # build pipeline
-        self.pipeline = set_pipeline(model)
+        self.set_pipeline()
 
         # train the pipeline
         self.pipeline.fit(self.X_train, self.y_train)
@@ -97,7 +83,6 @@ class Trainer:
             # print(colored("rmse train: {} || rmse val: {}".format(rmse_train, rmse_val), "blue"))
         # else:
         #     print(colored("rmse train: {}".format(rmse_train), "blue"))
-
 
 
     # implement evaluate() function
@@ -169,7 +154,8 @@ params = {
     'experiment_name': '[FR] [Bordeaux] [sanpigh] test_many_models v0',
     'mlflow'   : True,
     'split'    : True,
-    'test_size': 0.3
+    'test_size': 0.3,
+    'estimator': 'linear_regression'
 }
 trainer = Trainer(X, y, **params)
 trainer.train()

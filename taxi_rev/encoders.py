@@ -146,24 +146,32 @@ def set_preproc_pipe():
     return preproc_pipe
 
 
-def set_pipeline(model):
-    preproc_pipe = set_preproc_pipe()
-    if model == "linear_regression":
-        pipe = Pipeline(
-            [("preproc", preproc_pipe), ("linear_regression", LinearRegression())]
-        )
-    if model == "decision_tree_regression":
-        pipe = Pipeline(
-            [
-                ("preproc", preproc_pipe),
-                ("decision_tree_regression", DecisionTreeRegressor()),
-            ]
-        )
-    if model == "random_forest_regressor":
-        pipe = Pipeline(
-            [
-                ("preproc", preproc_pipe),
-                ("random_forest_regressor", RandomForestRegressor()),
-            ]
-        )
-    return pipe
+class GetPipeline():
+    # def __init__(self, model):
+    #     self.model = model
+    
+    def set_preproc_pipe(self):
+        self.preproc_pipe = set_preproc_pipe()
+    
+    def set_pipeline(self):
+        self.set_preproc_pipe()
+        
+        if self.estimator == "linear_regression":
+            self.pipeline = Pipeline(
+                [("preproc", self.preproc_pipe), ("linear_regression", LinearRegression())]
+            )
+        if self.estimator == "decision_tree_regression":
+            self.pipeline = Pipeline(
+                [
+                    ("preproc", self.preproc_pipe),
+                    ("decision_tree_regression", DecisionTreeRegressor()),
+                ]
+            )
+        if self.estimator == "random_forest_regressor":
+            self.pipeline = Pipeline(
+                [
+                    ("preproc", self.preproc_pipe),
+                    ("random_forest_regressor", RandomForestRegressor()),
+                ]
+            )
+
