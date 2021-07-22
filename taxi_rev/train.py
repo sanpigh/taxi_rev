@@ -64,6 +64,7 @@ class Trainer(GetPipeline):
         self.log_machine_specs()
         self.estimator_name   = kwargs.get('estimator_name', self.DEFAULT_ESTIMATOR_NAME)
         self.estimator_params = kwargs.get('estimator_params')
+        print(self.estimator_params)
 
 ### TRAINING AND EVALUATION
     def train(self):
@@ -129,15 +130,17 @@ class Trainer(GetPipeline):
             self.mlflow_log_param(k, v)
 
     def log_kwargs_params(self):
-        print('***************************')
+        print('*************************** log_kwars_params')
         if self.mlflow:
             for key, value in self.kwargs.items():
                 if key == 'estimator_params':
                     for k, v in value.items():
-                        self.mlflow_log_param(f'estimator param: {k}', v)
+                        print(f'       {k}, {v}')
+                        self.mlflow_log_param(f'estimator param {k}', v)
                 else:
                     self.mlflow_log_param(key, value)
                 print(key, value)
+        print('***************************')
 
     def log_machine_specs(self):
         cpus = multiprocess.cpu_count()
@@ -163,7 +166,7 @@ params = {
     'mlflow'   : True,
     'split'    : True,
     'test_size': 0.3,
-    'estimator_name': 'RandomForest'
+    'estimator_name': 'Xgboost'
 }
 
 extra_params = {}
@@ -182,7 +185,7 @@ if params['estimator_name'] == 'Xgboost':
     extra_params = {
     'max_depth': 10, #[10, 12],  #range(10, 20, 2),
     'n_estimators': 60, #[60, 100], #range(60, 220, 40),
-    'learning_rate': [0.1, 0.01, 0.05]
+    'learning_rate': 0.1 #[0.1, 0.01, 0.05]
     }
 
 params['estimator_params'] = extra_params
