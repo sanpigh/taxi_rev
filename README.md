@@ -1,10 +1,7 @@
 # Data analysis
 - Document here the project: taxi_rev
-- Description: Project Description
-- Data Source:
-- Type of analysis:
-
-Please document the project the better you can.
+- Description: Librery for data regression.
+- Type of regression: linear regression (lasso, ridge, linear), random tree, DecisionTree, Xgboost
 
 # Startup the project
 
@@ -22,26 +19,10 @@ Unittest test:
 make clean install test
 ```
 
-Check for taxi_rev in gitlab.com/{group}.
-If your project is not set please add it:
-
-- Create a new project on `gitlab.com/{group}/taxi_rev`
-- Then populate it:
-
-```bash
-##   e.g. if group is "{group}" and project_name is "taxi_rev"
-git remote add origin git@github.com:{group}/taxi_rev.git
-git push -u origin master
-git push -u origin --tags
-```
-
 Functionnal test with a script:
 
 ```bash
-cd
-mkdir tmp
-cd tmp
-taxi_rev-run
+scripts/taxi_rev-run
 ```
 
 # Install

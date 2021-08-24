@@ -1,4 +1,4 @@
-from taxi_rev.parameters import data_path
+from taxi_rev.parameters import DATA_LOCATION
 
 import pandas as pd
 
@@ -6,8 +6,7 @@ import pandas as pd
 # implement get_data() function
 def get_data(nrows=1000):
     """returns a DataFrame with nrows from s3 bucket"""
-    # aws_path = "s3://wagon-public-datasets/taxi-fare-train.csv"
-    df = pd.read_csv(data_path, nrows=nrows)
+    df = pd.read_csv(DATA_LOCATION, nrows=nrows)
     return df
 
 
