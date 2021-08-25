@@ -1,4 +1,4 @@
-
+import os
 from taxi_rev.parameters import STORAGE_LOCATION, BUCKET_NAME
 from google.cloud import storage
 import joblib
@@ -27,3 +27,16 @@ def save_estimator(model):
     # Implement here
     save_estimator_to_gcp()
     print(f"uploaded model.joblib to gcp cloud storage under \n => {STORAGE_LOCATION}")
+
+
+def download_model(rm=True):
+    client = storage.Client()
+    bucket = client.get_bucket(BUCKET_NAME)
+    blob = bucket.get_blob(STORAGE_LOCATION)
+    blob.download_to_filename('model.joblib')
+    print("=> pipeline downloaded from storage")
+    model = joblib.load('model.joblib')
+    print("=> model loaded")
+    if rm:
+        os.remove('model.joblib')
+    return model

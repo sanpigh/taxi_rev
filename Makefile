@@ -41,6 +41,10 @@ count_lines:
         '{printf "%4s %s\n", $$1, $$2}{s+=$$0}END{print s}'
 	@echo ''
 
+
+run_locally:
+	@python -m taxi_rev.train
+
 # ----------------------------------
 #      UPLOAD PACKAGE TO PYPI
 # ----------------------------------
@@ -76,5 +80,45 @@ set_project:
 create_bucket:
 	@gsutil mb -l ${REGION} -p ${PROJECT_ID} gs://${BUCKET_NAME}
 
-run_locally:
-	@python -m taxi_rev.train
+
+
+# SUBMIT PROCESS TO AI
+
+PACKAGE_NAME=taxi_rev
+# Name of the package
+
+FILENAME=train
+# Name of the module containing the main
+
+BUCKET_TRAINING_FOLDER=trainings
+# see job-dir. It contains the a zip file with the package.
+
+PYTHON_VERSION=3.7
+RUNTIME_VERSION=1.15
+# These versions must be compatible.
+
+JOB_NAME=taxi_rev_$(shell date +'%Y%m%d_%H%M%S')
+# Name of the job
+
+# -- job-dir
+# Cloud Storage path in which to store training outputs and other data needed for training.
+# This path will be passed to your TensorFlow program as the --job-dir command-line arg. 
+
+# --package-path
+#   Path to a Python package to build. This should point to a local directory containing the 
+# Python source for the job. It will be built using setuptools (which must be installed) using 
+#its parent directory as context. If the parent directory contains a setup.py file, the build 
+#will use that; otherwise, it will use a simple built-in one. 
+
+--module-name=train
+#    Name of the module to run. 
+
+gcp_submit_training:
+	gcloud ai-platform jobs submit training ${JOB_NAME} \
+  --job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER}  \
+  --package-path ${PACKAGE_NAME} \
+  --module-name ${PACKAGE_NAME}.${FILENAME} \
+  --python-version=${PYTHON_VERSION} \
+  --runtime-version=${RUNTIME_VERSION} \
+  --region ${REGION} \
+  --stream-logs

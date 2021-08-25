@@ -1,15 +1,12 @@
-
-
 ESTIMATOR_NAME = 'Lasso'
-
-MODEL_VERSION = 'v0'
-
+MODEL_VERSION = 'v1'
 LOCAL_DATA_LOCATION = 'raw_data/train_1k.csv'
-
-
-
+LOCAL_TEST_LOCATION = 'raw_data/train_1k.csv'
 STORAGE_LOCATION = f'models/{ESTIMATOR_NAME}/model.joblib'
 
+
+# for local training
+DATA_LOCATION = LOCAL_DATA_LOCATION
 
 # ----------------------------------
 #      Google Cloud
@@ -21,12 +18,7 @@ PROJECT_ID='le-wagon-bootcamp-313312'
 BUCKET_NAME='wagon-data-633-pighin_rev'
 BUCKET_DATA_LOCATION = 'data/train_1k.csv'
 
-
-
-# for local training
-# DATA_LOCATION = LOCAL_DATA_LOCATION
-
 # for GCS training
-DATA_LOCATION = f"gs://{BUCKET_NAME}/{BUCKET_DATA_LOCATION}"
+# DATA_LOCATION = f"gs://{BUCKET_NAME}/{BUCKET_DATA_LOCATION}"
 
 

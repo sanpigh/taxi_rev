@@ -2,7 +2,7 @@
 import multiprocess
 from psutil import virtual_memory
 
-from taxi_rev.parameters import ESTIMATOR_NAME
+from taxi.parameters import ESTIMATOR_NAME
 from taxi_rev.encoders import compute_rmse
 from taxi_rev.data import clean_data, get_data
 from taxi_rev.encoders import GetPipeline
@@ -86,12 +86,7 @@ class Trainer(GetPipeline):
         self.mlflow_log_metric("rmse_train", rmse_train)
         if self.split:
             rmse_val   = self.evaluate(self.X_val, self.y_val)
-            # rmse_val = self.compute_rmse(self.X_val, self.y_val, show=True)
             self.mlflow_log_metric("rmse_val", rmse_val)
-            # print(colored("rmse train: {} || rmse val: {}".format(rmse_train, rmse_val), "blue"))
-        # else:
-        #     print(colored("rmse train: {}".format(rmse_train), "blue"))
-
 
     # implement evaluate() function
     def evaluate(self, X_test, y_test):
@@ -99,6 +94,11 @@ class Trainer(GetPipeline):
         y_pred = self.pipeline.predict(X_test)
         rmse = compute_rmse(y_pred, y_test)
         return rmse
+    
+    def predict(self, X):
+        """returns the prediction for X"""
+        return self.pipeline.predict(X)
+        
 
 ### MLFlow methods
     @memoized_property
@@ -151,14 +151,17 @@ class Trainer(GetPipeline):
 
 if __name__ == '__main__':
 
-    ### Get Data
+      ### Get Data
     df = clean_data(get_data())
     y = df['fare_amount']
     X = df.drop('fare_amount', axis=1)
     del df
+    
+
+#    estimators = ['Lasso', 'Ridge', 'RandomForest', 'Xgboost']
 
     params = {
-        'experiment_name': '[FR] [Bordeaux] [sanpigh] test_many_models v0',
+        'experiment_name': '[FR] [Bordeaux] [sanpigh] test_many_models v1',
         'mlflow'   : True,
         'split'    : True,
         'test_size': 0.3,
@@ -188,6 +191,8 @@ if __name__ == '__main__':
 
     trainer = Trainer(X, y, **params)
     trainer.train()
+    
+    
     
     save_estimator(trainer.pipeline)
     
