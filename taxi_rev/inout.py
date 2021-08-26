@@ -1,5 +1,5 @@
 import os
-from taxi_rev.parameters import STORAGE_LOCATION, BUCKET_NAME, MODEL_LOCATION
+from taxi_rev.parameters import STORAGE_LOCATION, BUCKET_NAME, LOCAL_MODEL_LOCATION, LOCAL
 from google.cloud import storage
 import joblib
 
@@ -21,12 +21,13 @@ def save_estimator(model):
 
     # saving the trained model to disk is mandatory to then beeing able to upload it to storage
     # Implement here
-    joblib.dump(model, 'model.joblib')
+    joblib.dump(model, LOCAL_MODEL_LOCATION)
     print('saved model.joblib locally in ./')
 
     # Implement here
-    save_estimator_to_gcp()
-    print(f"uploaded model.joblib to gcp cloud storage under \n => {STORAGE_LOCATION}")
+    if LOCAL == 'false':
+        save_estimator_to_gcp()
+        print(f"uploaded model.joblib to gcp cloud storage under \n => {STORAGE_LOCATION}")
 
 
 def download_model(rm=True):
@@ -41,7 +42,7 @@ def download_model(rm=True):
     
     
 #    model = joblib.load('model.joblib')
-    model = joblib.load(MODEL_LOCATION)
+    model = joblib.load(LOCAL_MODEL_LOCATION)
 #    print("=> model loaded")
 #    if rm:
 #        os.remove('model.joblib')

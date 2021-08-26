@@ -1,13 +1,14 @@
 
 export ESTIMATOR_NAME=Lasso
+export LOCAL_MODEL_LOCATION=models
+export TRAIN_LOCAL=true
 
 # ----------------------------------
 #      Run Local
 # ----------------------------------
-LOCAL_DATA_LOCATION=raw_data/train_1k.csv
-LOCAL_MODEL_LOCATION=models
-LOCAL_TEST_LOCATION=raw_data/test.csv
-LOCAL_PREDICT_LOCATION=raw_data/prediction.csv
+export LOCAL_DATA_LOCATION=raw_data/train_1k.csv
+export LOCAL_TEST_LOCATION=raw_data/test.csv
+export LOCAL_PREDICT_LOCATION=raw_data/prediction.csv
 
 # ----------------------------------
 #      Google Cloud
@@ -68,14 +69,11 @@ count_lines:
 	@echo ''
 
 
-run_local:
+run_train_local: export LOCAL=true
+run_train_local:
 	@python -m taxi_rev.train
 
-
-run_predict_local: export DATA_LOCATION=${LOCAL_DATA_LOCATION} 
-run_predict_local: export TEST_LOCATION=${LOCAL_TEST_LOCATION}
-run_predict_local: export PREDICT_LOCATION=${LOCAL_PREDICT_LOCATION}
-run_predict_local: export MODEL_LOCATION=${LOCAL_MODEL_LOCATION}
+run_predict_local: export LOCAL=true
 run_predict_local:
 	python -m taxi_rev.predict
 

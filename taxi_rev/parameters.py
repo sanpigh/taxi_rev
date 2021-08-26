@@ -13,15 +13,19 @@ MODEL_VERSION = 'v1'
 
 
 ESTIMATOR_NAME = os.environ['ESTIMATOR_NAME']
-    
-    
-DATA_LOCATION    = os.environ['DATA_LOCATION']
-TEST_LOCATION    = os.environ['TEST_LOCATION']
-PREDICT_LOCATION = os.environ['PREDICT_LOCATION']
-tmp = os.environ['MODEL_LOCATION']
+LOCAL          = os.environ['LOCAL']
 
-MODEL_LOCATION   = f'{tmp}/{ESTIMATOR_NAME}/model.joblib'
-
+if LOCAL == 'true':
+    DATA_LOCATION    = os.environ['LOCAL_DATA_LOCATION']
+    TEST_LOCATION    = os.environ['LOCAL_TEST_LOCATION']
+    PREDICT_LOCATION = os.environ['LOCAL_PREDICT_LOCATION']
+    tmp = os.environ['LOCAL_MODEL_LOCATION']
+    LOCAL_MODEL_LOCATION   = f'{tmp}/{ESTIMATOR_NAME}/model.joblib'
+else:
+    DATA_LOCATION    = 'dfgsdfgsdfg'
+    TEST_LOCATION    = 'ddddd'
+    PREDICT_LOCATION = 'sssss'
+    
 # for GCS training
 STORAGE_LOCATION = f'models/{ESTIMATOR_NAME}/model.joblib'
 PROJECT_ID='le-wagon-bootcamp-313312'
