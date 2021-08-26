@@ -1,5 +1,5 @@
 import os
-from taxi_rev.parameters import STORAGE_LOCATION, BUCKET_NAME
+from taxi_rev.parameters import STORAGE_LOCATION, BUCKET_NAME, MODEL_LOCATION
 from google.cloud import storage
 import joblib
 
@@ -30,13 +30,19 @@ def save_estimator(model):
 
 
 def download_model(rm=True):
-    client = storage.Client()
-    bucket = client.get_bucket(BUCKET_NAME)
-    blob = bucket.get_blob(STORAGE_LOCATION)
-    blob.download_to_filename('model.joblib')
-    print("=> pipeline downloaded from storage")
-    model = joblib.load('model.joblib')
-    print("=> model loaded")
-    if rm:
-        os.remove('model.joblib')
+
+
+
+#    client = storage.Client()
+#    bucket = client.get_bucket(BUCKET_NAME)
+#    blob = bucket.get_blob(STORAGE_LOCATION)
+#    blob.download_to_filename('model.joblib')
+#    print("=> pipeline downloaded from storage")
+    
+    
+#    model = joblib.load('model.joblib')
+    model = joblib.load(MODEL_LOCATION)
+#    print("=> model loaded")
+#    if rm:
+#        os.remove('model.joblib')
     return model

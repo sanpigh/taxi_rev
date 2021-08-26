@@ -1,3 +1,29 @@
+
+export ESTIMATOR_NAME=Lasso
+
+# ----------------------------------
+#      Run Local
+# ----------------------------------
+LOCAL_DATA_LOCATION=raw_data/train_1k.csv
+LOCAL_MODEL_LOCATION=models
+LOCAL_TEST_LOCATION=raw_data/test.csv
+LOCAL_PREDICT_LOCATION=raw_data/prediction.csv
+
+# ----------------------------------
+#      Google Cloud
+# ----------------------------------
+# CREATE BUCKET
+# project id - replace with your GCP project id
+PROJECT_ID=le-wagon-bootcamp-313312
+# bucket name - replace with your GCP bucket name
+BUCKET_NAME=wagon-data-633-pighin_rev
+# choose your region from https://cloud.google.com/storage/docs/locations#available_locations
+REGION=europe-west1
+BUCKET_TRAIN_DATA_PATH=data/train_1k.csv
+
+
+
+
 # ----------------------------------
 #          INSTALL & TEST
 # ----------------------------------
@@ -45,8 +71,13 @@ count_lines:
 run_local:
 	@python -m taxi_rev.train
 
+
+run_predict_local: export DATA_LOCATION=${LOCAL_DATA_LOCATION} 
+run_predict_local: export TEST_LOCATION=${LOCAL_TEST_LOCATION}
+run_predict_local: export PREDICT_LOCATION=${LOCAL_PREDICT_LOCATION}
+run_predict_local: export MODEL_LOCATION=${LOCAL_MODEL_LOCATION}
 run_predict_local:
-	@python -m taxi_rev.predict
+	python -m taxi_rev.predict
 
 # ----------------------------------
 #      UPLOAD PACKAGE TO PYPI
@@ -63,17 +94,11 @@ pypi:
 
 
 
-# ----------------------------------
-#      Google Cloud
-# ----------------------------------
-# CREATE BUCKET
-# project id - replace with your GCP project id
-export PROJECT_ID=le-wagon-bootcamp-313312
-# bucket name - replace with your GCP bucket name
-BUCKET_NAME=wagon-data-633-pighin_rev
-# choose your region from https://cloud.google.com/storage/docs/locations#available_locations
-REGION=europe-west1
-BUCKET_TRAIN_DATA_PATH=data/train_1k.csv
+
+
+
+
+
 
 
 
