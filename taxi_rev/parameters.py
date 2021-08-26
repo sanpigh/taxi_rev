@@ -1,7 +1,10 @@
+import os
+
 ESTIMATOR_NAME = 'Lasso'
 MODEL_VERSION = 'v1'
 LOCAL_DATA_LOCATION = 'raw_data/train_1k.csv'
-LOCAL_TEST_LOCATION = 'raw_data/train_1k.csv'
+LOCAL_TEST_LOCATION = 'raw_data/test.csv'
+LOCAL_PREDICT_LOCATION = 'raw_data/prediction.csv'
 STORAGE_LOCATION = f'models/{ESTIMATOR_NAME}/model.joblib'
 
 
@@ -22,3 +25,6 @@ BUCKET_DATA_LOCATION = 'data/train_1k.csv'
 # DATA_LOCATION = f"gs://{BUCKET_NAME}/{BUCKET_DATA_LOCATION}"
 
 
+def get_data_location():
+    return os.environ['PROJECT_ID']
+    

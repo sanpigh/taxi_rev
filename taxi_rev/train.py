@@ -2,7 +2,7 @@
 import multiprocess
 from psutil import virtual_memory
 
-from taxi.parameters import ESTIMATOR_NAME
+from taxi_rev.parameters import ESTIMATOR_NAME
 from taxi_rev.encoders import compute_rmse
 from taxi_rev.data import clean_data, get_data
 from taxi_rev.encoders import GetPipeline

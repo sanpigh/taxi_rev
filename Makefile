@@ -26,7 +26,7 @@ clean:
 	@rm -fr taxi_rev.egg-info
 
 install:
-	@pip install . -U
+	@pip install -U -e .
 
 all: clean install test black check_code
 
@@ -42,8 +42,11 @@ count_lines:
 	@echo ''
 
 
-run_locally:
+run_local:
 	@python -m taxi_rev.train
+
+run_predict_local:
+	@python -m taxi_rev.predict
 
 # ----------------------------------
 #      UPLOAD PACKAGE TO PYPI
@@ -65,7 +68,7 @@ pypi:
 # ----------------------------------
 # CREATE BUCKET
 # project id - replace with your GCP project id
-PROJECT_ID=le-wagon-bootcamp-313312
+export PROJECT_ID=le-wagon-bootcamp-313312
 # bucket name - replace with your GCP bucket name
 BUCKET_NAME=wagon-data-633-pighin_rev
 # choose your region from https://cloud.google.com/storage/docs/locations#available_locations
@@ -94,7 +97,7 @@ BUCKET_TRAINING_FOLDER=trainings
 # see job-dir. It contains the a zip file with the package.
 
 PYTHON_VERSION=3.7
-RUNTIME_VERSION=1.15
+RUNTIME_VERSION=2.5
 # These versions must be compatible.
 
 JOB_NAME=taxi_rev_$(shell date +'%Y%m%d_%H%M%S')
